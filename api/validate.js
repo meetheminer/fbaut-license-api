@@ -4,8 +4,13 @@
 //   SUPABASE_SERVICE_KEY = eyJ... (service_role key)
 
 import { createClient } from '@supabase/supabase-js';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ALPHA48 = readFileSync(join(__dirname, '../alpha48.b64'), 'utf8').trim();
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -31,12 +36,12 @@ export default async function handler(req, res) {
 
   if (existing) {
     await supabase.from('activations').update({ last_seen: new Date().toISOString() }).eq('id', existing.id);
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, alpha48: ALPHA48 });
   }
 
   const { count } = await supabase.from('activations').select('id', { count: 'exact', head: true }).eq('license_id', license.id);
   if (count >= license.max_devices) return res.status(200).json({ ok: false, error: `License already used on ${license.max_devices} device(s). Contact support to transfer.` });
 
   await supabase.from('activations').insert({ license_id: license.id, device_id });
-  return res.status(200).json({ ok: true });
+  return res.status(200).json({ ok: true, alpha48: ALPHA48 });
 }
