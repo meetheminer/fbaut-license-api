@@ -4,13 +4,9 @@
 //   SUPABASE_SERVICE_KEY = eyJ... (service_role key)
 
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ALPHA48 = readFileSync(join(__dirname, '../alpha48.b64'), 'utf8').trim();
+const ALPHA48 = process.env.ALPHA48 || '';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
